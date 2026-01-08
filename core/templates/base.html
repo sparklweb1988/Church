@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Signs & Wonders Fin</title>
+        {% load static%}
+        <link rel="stylesheet" href="{% static 'core/style.css'%}" />
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.min.js"
+            integrity="sha512-n/G+dROKbKL3GVngGWmWfwK0yPctjZQM752diVYnXZtD/48agpUKLIn0xDQL9ydZ91x6BiOmTIFwWjjFi2kEFg=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    </head>
+
+
+    <nav>
+        <a href="" class="logo">RCCG <br /> Signs & Wonders</a>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul id="nav-menu">
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'transaction'%}">Transactions</a></li>
+            <li><a href="{% url 'returns_summary' %}">Returns</a></li>
+            <li><a href="{% url 'logout'%}">Logout</a></li>
+
+            {% else %}
+            <li><a href="">Signin</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+
+
+
+    {% block content%} {% endblock content%}
+    <footer>
+        <p>© <span id="year"></span> RCCG Signs & Wonders. All Rights Reserved.</p>
+    </footer>
+
+
+    <script>
+        const hamburger = document.getElementById("hamburger");
+        const navMenu = document.getElementById("nav-menu");
+
+        hamburger.addEventListener("click", () => {
+            navMenu.classList.toggle("active");
+        });
+        document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+    <!-- payment  -->
+
+    </body>
+
+</html>

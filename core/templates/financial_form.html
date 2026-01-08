@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>{{ action }} Financial Record</h2>
+
+    <!-- Dynamic form action: add or edit -->
+    <form method="POST"
+        action="{% if financial %}{% url 'edit_financial' financial.id %}{% else %}{% url 'add_financial' %}{% endif %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="crm">Crm</label>
+            <input type="number" step="0.01" name="crm" id="crm" class="form-control"
+                value="{{ financial.crm|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="minister_tithe">Minister Tithe</label>
+            <input type="number" step="0.01" name="minister_tithe" id="minister_tithe" class="form-control"
+                value="{{ financial.minister_tithe|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="general_tithe">General Tithe</label>
+            <input type="number" step="0.01" name="general_tithe" id="general_tithe" class="form-control"
+                value="{{ financial.general_tithe|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="offering">Offering</label>
+            <input type="number" step="0.01" name="offering" id="offering" class="form-control"
+                value="{{ financial.offering|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="thanksgiving">Thanksgiving</label>
+            <input type="number" step="0.01" name="thanksgiving" id="thanksgiving" class="form-control"
+                value="{{ financial.thanksgiving|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="breakthrough">Breakthrough</label>
+            <input type="number" step="0.01" name="breakthrough" id="breakthrough" class="form-control"
+                value="{{ financial.breakthrough|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="sunday_school">Sunday School</label>
+            <input type="number" step="0.01" name="sunday_school" id="sunday_school" class="form-control"
+                value="{{ financial.sunday_school|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="children">Children Offering</label>
+            <input type="number" step="0.01" name="children" id="children" class="form-control"
+                value="{{ financial.children|default_if_none:0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="others">Others</label>
+            <input type="number" step="0.01" name="others" id="others" class="form-control"
+                value="{{ financial.others|default_if_none:0 }}">
+        </div>
+
+        <button type="submit" class="btn btn-primary">{{ action }} Record</button>
+        <br><br>
+        <a href="{% url 'transaction'%}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="container"> <br>
+  <h2>Welcome Back : {{user.username}} to your Transaction Table</h2> <br>
+
+  <br />
+  <!-- Compact Date Filter Form -->
+  <p>Filter Data by Dates</p>
+  <form method="get" action="" style="display: inline-block; margin-bottom: 10px;">
+    <input type="date" name="from_date" value="{{ from_date }}" style="height: 25px; width: 120px;">
+    <input type="date" name="to_date" value="{{ to_date }}" style="height: 25px; width: 120px;">
+    <input type="submit" value="Go" style="height: 25px; padding: 0 10px;">
+    <a href="{% url 'transaction' %}" style="text-decoration: none;">
+      <button type="button" style="height: 25px; padding: 0 10px;">Reset</button>
+    </a>
+  </form>
+
+
+
+
+  <a href="{% url 'add_financial'%}">Add Records</a>
+  <br><br>
+  <!-- Desktop Table View -->
+  <div class="desktop-view">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Crm</th>
+          <th>M_tithe</th>
+          <th>G_tithe</th>
+          <th>Offering</th>
+          <th>Thanksgiving</th>
+          <th>Breakthrough</th>
+          <th>Sunday School</th>
+          <th>Children Offering</th>
+          <th>Others</th>
+          <th>Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in transactions %}
+        <tr>
+          <td>{{ transaction.created_at }}</td>
+          <td>&#8358; {{ transaction.crm }}</td>
+          <td>&#8358;:{{ transaction.minister_tithe }}</td>
+          <td>&#8358;:{{ transaction.general_tithe }}</td>
+          <td>&#8358;:{{ transaction.offering }}</td>
+          <td>&#8358; {{ transaction.thanksgiving }}</td>
+          <td>&#8358; {{ transaction.breakthrough }}</td>
+          <td>&#8358; {{ transaction.sunday_school }}</td>
+          <td>&#8358; {{ transaction.children }}</td>
+          <td>&#8358;:{{ transaction.others }}</td>
+          <td>&#8358;:{{ transaction.total }}</td>
+          <td>
+            <a href="{% url 'edit_financial' transaction.id %}">Edit</a>
+            <a href="{% url 'delete_financial' transaction.id %}">Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="12">No Transactions found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <h2><a href="{% url 'export_transactions_excel'%}">Download Report</a></h2>
+    <h3>Grand Total: &#8358; {{ grand_total }}</h3>
+  </div>
+
+  <!-- Mobile Card View -->
+  <div class="mobile-view">
+    {% for transaction in transactions %}
+    <div class="mobile-card">
+      <h3>Total : &#8358; {{ transaction.total }}</h3>
+      <p><strong>Date:</strong> {{ transaction.created_at }}</p>
+      <p><strong>Crm:</strong> &#8358; {{ transaction.crm }}</p>
+      <p><strong>Minister Tithe:</strong> &#8358; {{ transaction.minister_tithe }}</p>
+      <p><strong>General Tithe:</strong> &#8358; {{ transaction.general_tithe }}</p>
+      <p><strong>Offering:</strong> &#8358; {{ transaction.offering }}</p>
+      <p><strong>Thanksgiving:</strong> &#8358; {{ transaction.thanksgiving }}</p>
+      <p><strong>Breakthrough:</strong> &#8358; {{ transaction.breakthrough }}</p>
+      <p><strong>Sunday School:</strong> &#8358; {{ transaction.sunday_school }}</p>
+      <p><strong>Children Offering:</strong> &#8358; {{ transaction.children }}</p>
+      <p><strong>Others:</strong> &#8358; {{ transaction.others }}</p>
+      <div class="mobile-actions">
+        <a href="{% url 'edit_financial' transaction.id %}">Edit</a>
+        <a href="{% url 'delete_financial' transaction.id %}">Delete</a>
+      </div>
+    </div>
+    {% empty %}
+    <p>No Transactions found.</p>
+    {% endfor %}
+    <br>
+
+    <p>Grand Total: &#8358; {{ grand_total }}</p>
+    <br>
+    <h2><a href="{% url 'export_transactions_excel'%}">Download Report</a></h2>
+  </div>
+
+</div>
+{% endblock %}

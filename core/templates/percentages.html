@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="container"> <br>
+  <h2>Returns Summary</h2> <br>
+
+  <!-- Compact Date Filter Form -->
+  <p>Filter Data by Dates</p>
+  <form method="get" action="" style="display: inline-block; margin-bottom: 10px;">
+    <input type="date" name="from_date" value="{{ from_date }}" style="height: 25px; width: 120px;">
+    <input type="date" name="to_date" value="{{ to_date }}" style="height: 25px; width: 120px;">
+    <input type="submit" value="Go" style="height: 25px; padding: 0 10px;">
+    <a href="{% url 'transaction' %}" style="text-decoration: none;">
+      <button type="button" style="height: 25px; padding: 0 10px;">Reset</button>
+    </a>
+  </form>
+
+  <!-- Desktop Table View -->
+  <div class="desktop-view">
+    {% if summary %}
+    <table>
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Actual Amount (100%)</th>
+          <th>%</th>
+          <th>Total Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>General Tithe</td>
+          <td>&#8358; {{ actual_amounts.general_tithe }}</td>
+          <td>64%</td>
+          <td>&#8358; {{ summary.general_tithe }}</td>
+        </tr>
+        <tr>
+          <td>Minister Tithe</td>
+          <td>&#8358; {{ actual_amounts.minister_tithe }}</td>
+          <td>64%</td>
+          <td>&#8358; {{ summary.minister_tithe }}</td>
+        </tr>
+        <tr>
+          <td>Sunday School</td>
+          <td>&#8358; {{ actual_amounts.sunday_school }}</td>
+          <td>50%</td>
+          <td>&#8358; {{ summary.sunday_school }}</td>
+        </tr>
+        <tr>
+          <td>Thanksgiving</td>
+          <td>&#8358; {{ actual_amounts.thanksgiving }}</td>
+          <td>70%</td>
+          <td>&#8358; {{ summary.thanksgiving }}</td>
+        </tr>
+        <tr>
+          <td>CRM</td>
+          <td>&#8358; {{ actual_amounts.crm }}</td>
+          <td>50%</td>
+          <td>&#8358; {{ summary.crm }}</td>
+        </tr>
+        <tr>
+          <td>Children Offering</td>
+          <td>&#8358; {{ actual_amounts.children }}</td>
+          <td>35%</td>
+          <td>&#8358; {{ summary.children }}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3"><strong>Grand Total</strong></td>
+          <td><strong>&#8358; {{ summary.grand_total }}</strong></td>
+          <br>
+
+        </tr>
+      </tfoot>
+    </table>
+    <h2><a href="{% url 'export_returns_summary'%}">Download Report</a></h2>
+    {% else %}
+    <p>No Transactions found.</p>
+    {% endif %}
+  </div>
+
+  <!-- MOBILE -->
+  <div class="mobile-view">
+    {% if summary %}
+    <div class="mobile-card" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+      <h3>Returns Summary</h3>
+
+      <p><strong>General Tithe (100%):</strong> &#8358; {{ actual_amounts.general_tithe }} </p>
+      <p><strong>General Tithe (64%):</strong> &#8358; {{ summary.general_tithe }}</p>
+
+      <p><strong>Minister Tithe (100%):</strong> &#8358; {{ actual_amounts.minister_tithe }} </p>
+      <p><strong>Minister Tithe (64%):</strong> &#8358; {{ summary.minister_tithe }}</p>
+
+      <p><strong>Sunday School (100%):</strong> &#8358; {{ actual_amounts.sunday_school }} </p>
+      <p><strong>Sunday School (50%):</strong> &#8358; {{ summary.sunday_school }}</p>
+
+      <p><strong>Thanksgiving (100%):</strong> &#8358; {{ actual_amounts.thanksgiving }} </p>
+      <p><strong>Thanksgiving (70%):</strong> &#8358; {{ summary.thanksgiving }}</p>
+
+      <p><strong>CRM (100%):</strong> &#8358; {{ actual_amounts.crm }} </p>
+      <p><strong>CRM (50%):</strong> &#8358; {{ summary.crm }}</p>
+
+      <p><strong>Children Offering (100%):</strong> &#8358; {{ actual_amounts.children }} </p>
+      <p><strong>Children Offering (35%):</strong> &#8358; {{ summary.children }}</p>
+
+      <p><strong>Grand Total:</strong> &#8358; {{ summary.grand_total }}</p>
+    </div>
+    {% else %}
+    <p>No Transactions found.</p>
+    {% endif %}
+    <h2><a href="{% url 'export_returns_summary'%}">Download Report</a></h2>
+  </div>
+
+</div>
+{% endblock %}
