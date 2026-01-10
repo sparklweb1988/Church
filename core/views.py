@@ -28,11 +28,15 @@ def signin_view(request):
 
 def transaction(request):
     # Start with all transactions
-    transactions = Financial.objects.all().order_by('-created_at')
+    transactions = Financial.objects.all().order_by('-created_at')  # Most recent first
 
     # Get date filters from GET parameters
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
+
+    # Debugging: Print the dates to verify if they're being passed correctly
+    print(f"From Date: {from_date}")
+    print(f"To Date: {to_date}")
 
     # Filter by 'from_date' if provided
     if from_date:
@@ -49,6 +53,7 @@ def transaction(request):
     # Safely calculate grand total, treating None as 0
     grand_total = sum([t.total or 0 for t in transactions])
 
+    # Context to pass to template
     context = {
         'transactions': transactions,
         'grand_total': grand_total,
@@ -57,6 +62,52 @@ def transaction(request):
     }
 
     return render(request, 'transaction.html', context)
+
+
+
+
+
+
+from datetime import date
+
+def transaction_summary(request):
+    # Start with all transactions
+    transactions = Financial.objects.all().order_by('-created_at')
+
+    # Get date filters from GET parameters
+    from_date = request.GET.get('from_date', str(date.today()))  # Default to today if not provided
+    to_date = request.GET.get('to_date', str(date.today()))  # Default to today if not provided
+
+    # Convert from string to date
+    from_date_parsed = parse_date(from_date)
+    to_date_parsed = parse_date(to_date)
+
+    # Filter by 'from_date' if provided
+    if from_date_parsed:
+        transactions = transactions.filter(created_at__gte=from_date_parsed)
+
+    # Filter by 'to_date' if provided
+    if to_date_parsed:
+        transactions = transactions.filter(created_at__lte=to_date_parsed)
+
+    # Aggregate data
+    transaction_count = transactions.count()
+    grand_total = sum([t.total or 0 for t in transactions])
+
+    # Optional: Calculate additional statistics like average transaction value
+    average_transaction = grand_total / transaction_count if transaction_count else 0
+
+    context = {
+        'transaction_count': transaction_count,
+        'grand_total': grand_total,
+        'average_transaction': average_transaction,
+        'from_date': from_date,
+        'to_date': to_date,
+    }
+
+    return render(request, 'transaction_summary.html', context)
+
+
 
 
 
@@ -192,42 +243,6 @@ def export_transactions_excel(request):
     wb.save(response)
     return response
 
-
-
-# def view_transaction_percentages(request, transaction_id):
-#     transaction = Financial.objects.get(id=transaction_id)
-#     return render(request, "percentages.html", {"transaction": transaction})
-
-
-
-
-# def all_transactions_percentages(request):
-#     transactions = Financial.objects.all().order_by('-created_at')
-
-#     # Optional: support date filtering
-#     from django.utils.dateparse import parse_date
-#     from_date = request.GET.get('from_date')
-#     to_date = request.GET.get('to_date')
-
-#     if from_date:
-#         from_date_parsed = parse_date(from_date)
-#         if from_date_parsed:
-#             transactions = transactions.filter(created_at__gte=from_date_parsed)
-#     if to_date:
-#         to_date_parsed = parse_date(to_date)
-#         if to_date_parsed:
-#             transactions = transactions.filter(created_at__lte=to_date_parsed)
-
-#     # Calculate grand total of weighted totals
-#     grand_total = sum([t.weighted_total for t in transactions])
-
-#     context = {
-#         'transactions': transactions,
-#         'grand_total': grand_total,
-#         'from_date': from_date,
-#         'to_date': to_date,
-#     }
-#     return render(request, 'percentages.html', context)
 
 
 

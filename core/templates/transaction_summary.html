@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="container"> <br>
+    <h1>Transaction Summary</h1>
+
+    <p><strong>Total Transactions:</strong> {{ transaction_count }}</p>
+    <p><strong>Grand Total:</strong> &#8358; {{ grand_total }}</p>
+    <p><strong>Average Transaction:</strong> &#8358; {{ average_transaction }}</p>
+
+    <hr>
+
+    <h3>Filters:</h3>
+    <p><strong>From Date:</strong> {{ from_date|default:"No date provided" }}</p>
+    <p><strong>To Date:</strong> {{ to_date|default:"No date provided" }}</p>
+</div>
+{% endblock %}

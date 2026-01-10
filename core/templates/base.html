@@ -25,6 +25,7 @@
             {% if user.is_authenticated %}
             <li><a href="{% url 'transaction'%}">Transactions</a></li>
             <li><a href="{% url 'returns_summary' %}">Returns</a></li>
+            <li><a href="{% url 'transaction_summary' %}">Summary</a></li>
             <li><a href="{% url 'logout'%}">Logout</a></li>
 
             {% else %}
