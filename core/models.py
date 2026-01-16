@@ -5,56 +5,62 @@ from django.contrib.auth.models import User
 
 
 
+from django.db import models
+from django.contrib.auth.models import User
+from decimal import Decimal
+
 class Financial(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="financials")
 
-    crm = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    offering = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    minister_tithe = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    general_tithe = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    thanksgiving = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    breakthrough = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    others = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    sunday_school = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    children = models.DecimalField(max_digits=12, decimal_places=2, default=0,null=True, blank=True)
-    created_at = models.DateField(auto_now_add=True, null=True)
+    crm = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    offering = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    minister_tithe = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    general_tithe = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    thanksgiving = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    breakthrough = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    others = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    sunday_school = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    children = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+
+    created_at = models.DateField(auto_now_add=True)
 
     class Meta:
         db_table = "Financial"
 
     @property
     def total(self):
-        # Sum only the fields you want
-        return self.crm + self.offering + self.minister_tithe + self.general_tithe + self.thanksgiving
-    
-    
-    
-    # Weighted percentages
+        return (
+            (self.crm or Decimal('0')) +
+            (self.offering or Decimal('0')) +
+            (self.minister_tithe or Decimal('0')) +
+            (self.general_tithe or Decimal('0')) +
+            (self.thanksgiving or Decimal('0'))
+        )
+
     @property
     def general_tithe_pct(self):
-        return float(self.general_tithe or 0) * 0.64
+        return (self.general_tithe or Decimal('0')) * Decimal('0.64')
 
     @property
     def minister_tithe_pct(self):
-        return float(self.minister_tithe or 0) * 0.64
+        return (self.minister_tithe or Decimal('0')) * Decimal('0.64')
 
     @property
     def sunday_school_pct(self):
-        return float(self.sunday_school or 0) * 0.50
+        return (self.sunday_school or Decimal('0')) * Decimal('0.50')
 
     @property
     def thanksgiving_pct(self):
-        return float(self.thanksgiving or 0) * 0.70
+        return (self.thanksgiving or Decimal('0')) * Decimal('0.70')
 
     @property
     def crm_pct(self):
-        return float(self.crm or 0) * 0.50
+        return (self.crm or Decimal('0')) * Decimal('0.50')
 
     @property
     def children_pct(self):
-        return float(self.children or 0) * 0.35
+        return (self.children or Decimal('0')) * Decimal('0.35')
 
-    # Optional: grand total of weighted percentages for this record
     @property
     def weighted_total(self):
         return (
