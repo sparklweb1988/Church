@@ -7,7 +7,7 @@ from django.utils.dateparse import parse_date
 from django.http import HttpResponse
 from openpyxl import Workbook
 import openpyxl
-
+from decimal import Decimal
 
 
 
@@ -301,61 +301,40 @@ def export_transactions_excel(request):
 
 
 def returns_summary(request):
-    # Start with all transactions, ordered by newest first
-    transactions = Financial.objects.all().order_by('-created_at')
+    transactions = Financial.objects.all()
 
-    # --- Date filters ---
+    # Optional: filter by date
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
 
     if from_date:
-        parsed_from = parse_date(from_date)
-        if parsed_from:
-            transactions = transactions.filter(created_at__gte=parsed_from)
-
+        parsed = parse_date(from_date)
+        if parsed:
+            transactions = transactions.filter(created_at__gte=parsed)
     if to_date:
-        parsed_to = parse_date(to_date)
-        if parsed_to:
-            transactions = transactions.filter(created_at__lte=parsed_to)
+        parsed = parse_date(to_date)
+        if parsed:
+            transactions = transactions.filter(created_at__lte=parsed)
 
-    # --- Initialize Decimal sums ---
-    total_general_tithe = Decimal('0')
-    total_minister_tithe = Decimal('0')
-    total_sunday_school = Decimal('0')
-    total_thanksgiving = Decimal('0')
-    total_crm = Decimal('0')
-    total_children = Decimal('0')
-    grand_total = Decimal('0')
-
-    # --- Compute sums for weighted totals ---
-    for t in transactions:
-        total_general_tithe += t.general_tithe_pct
-        total_minister_tithe += t.minister_tithe_pct
-        total_sunday_school += t.sunday_school_pct
-        total_thanksgiving += t.thanksgiving_pct
-        total_crm += t.crm_pct
-        total_children += t.children_pct
-        grand_total += t.weighted_total
-
-    # --- Prepare summary dictionary ---
+    # Aggregate totals for each field (Decimal-safe)
     summary = {
-        'general_tithe': total_general_tithe,
-        'minister_tithe': total_minister_tithe,
-        'sunday_school': total_sunday_school,
-        'thanksgiving': total_thanksgiving,
-        'crm': total_crm,
-        'children': total_children,
-        'grand_total': grand_total,
+        'general_tithe': sum(t.general_tithe_pct for t in transactions),
+        'minister_tithe': sum(t.minister_tithe_pct for t in transactions),
+        'sunday_school': sum(t.sunday_school_pct for t in transactions),
+        'thanksgiving': sum(t.thanksgiving_pct for t in transactions),
+        'crm': sum(t.crm_pct for t in transactions),
+        'children': sum(t.children_pct for t in transactions),
+        'grand_total': sum(t.weighted_total for t in transactions),
     }
 
-    # --- Compute actual amounts (100%) safely ---
+    # Calculate Actual Amount (100%) for each field using Decimal
     actual_amounts = {
-        'general_tithe': (total_general_tithe / Decimal('0.64')) if total_general_tithe else Decimal('0'),
-        'minister_tithe': (total_minister_tithe / Decimal('0.64')) if total_minister_tithe else Decimal('0'),
-        'sunday_school': (total_sunday_school / Decimal('0.50')) if total_sunday_school else Decimal('0'),
-        'thanksgiving': (total_thanksgiving / Decimal('0.70')) if total_thanksgiving else Decimal('0'),
-        'crm': (total_crm / Decimal('0.50')) if total_crm else Decimal('0'),
-        'children': (total_children / Decimal('0.35')) if total_children else Decimal('0'),
+        'general_tithe': summary['general_tithe'] / Decimal('0.64') if summary['general_tithe'] else Decimal('0'),
+        'minister_tithe': summary['minister_tithe'] / Decimal('0.64') if summary['minister_tithe'] else Decimal('0'),
+        'sunday_school': summary['sunday_school'] / Decimal('0.50') if summary['sunday_school'] else Decimal('0'),
+        'thanksgiving': summary['thanksgiving'] / Decimal('0.70') if summary['thanksgiving'] else Decimal('0'),
+        'crm': summary['crm'] / Decimal('0.50') if summary['crm'] else Decimal('0'),
+        'children': summary['children'] / Decimal('0.35') if summary['children'] else Decimal('0'),
     }
 
     context = {
@@ -364,10 +343,7 @@ def returns_summary(request):
         'from_date': from_date,
         'to_date': to_date,
     }
-
     return render(request, 'percentages.html', context)
-
-
 
 
 
