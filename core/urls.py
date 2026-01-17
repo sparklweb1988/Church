@@ -16,4 +16,5 @@ urlpatterns = [
    path('transaction/percentages/', views.returns_summary, name='returns_summary'),
    path('transaction/percentages/export/', views.export_returns_summary, name='export_returns_summary'),
    path('transactions/summary/', views.transaction_summary, name='transaction_summary'),
+   path('transaction/percentages/', views.transaction_percentages, name='transaction_percentages'),
 ]
