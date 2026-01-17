@@ -63,6 +63,59 @@ def transaction(request):
 
 
 
+def transaction_percentages(request):
+    # Start with all transactions
+    transactions = Financial.objects.all().order_by('-created_at')
+
+    # --- Date filters ---
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    if from_date:
+        parsed_from = parse_date(from_date)
+        if parsed_from:
+            transactions = transactions.filter(created_at__gte=parsed_from)
+
+    if to_date:
+        parsed_to = parse_date(to_date)
+        if parsed_to:
+            transactions = transactions.filter(created_at__lte=parsed_to)
+
+    # --- Compute weighted totals and individual percentages ---
+    for t in transactions:
+        t.crm_pct_val = t.crm_pct
+        t.general_tithe_pct_val = t.general_tithe_pct
+        t.minister_tithe_pct_val = t.minister_tithe_pct
+        t.sunday_school_pct_val = t.sunday_school_pct
+        t.thanksgiving_pct_val = t.thanksgiving_pct
+        t.children_pct_val = t.children_pct
+        t.weighted_total_val = t.weighted_total
+
+    # --- Grand totals ---
+    grand_weighted_total = sum(t.weighted_total_val for t in transactions)
+    grand_total = sum(t.total for t in transactions)
+
+    context = {
+        'transactions': transactions,
+        'grand_weighted_total': grand_weighted_total,
+        'grand_total': grand_total,
+        'from_date': from_date,
+        'to_date': to_date,
+    }
+
+    return render(request, "percentages.html", context)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 from datetime import date
