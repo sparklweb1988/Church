@@ -1,116 +1,99 @@
 {% extends 'base.html' %}
 {% block content %}
-{% load static %}
-<div class="container"> <br>
-  <h2>Returns Summary</h2> <br>
+<div class="container mt-4">
+  <h2>Returns Summary</h2><br>
 
-  <!-- Compact Date Filter Form -->
+  <!-- Date Filter Form -->
   <p>Filter Data by Dates</p>
-  <form method="get" action="" style="display: inline-block; margin-bottom: 10px;">
-    <input type="date" name="from_date" value="{{ from_date }}" style="height: 25px; width: 120px;">
-    <input type="date" name="to_date" value="{{ to_date }}" style="height: 25px; width: 120px;">
-    <input type="submit" value="Go" style="height: 25px; padding: 0 10px;">
-    <a href="{% url 'transaction' %}" style="text-decoration: none;">
-      <button type="button" style="height: 25px; padding: 0 10px;">Reset</button>
-    </a>
+  <form method="get" action="" class="d-flex mb-3 align-items-center gap-2">
+    <input type="date" name="from_date" value="{{ from_date }}" class="form-control form-control-sm" style="max-width: 150px;">
+    <input type="date" name="to_date" value="{{ to_date }}" class="form-control form-control-sm" style="max-width: 150px;">
+    <button type="submit" class="btn btn-sm btn-primary">Go</button>
+    <a href="{% url 'transaction_percentages' %}" class="btn btn-sm btn-secondary">Reset</a>
   </form>
 
-  <!-- Desktop Table View -->
-  <div class="desktop-view">
-    {% if summary %}
-    <table>
-      <thead>
+  {% if transactions %}
+  {% with
+    general_tithe_total=transactions|sum(attribute='general_tithe_pct_val') 
+    minister_tithe_total=transactions|sum(attribute='minister_tithe_pct_val')
+    sunday_school_total=transactions|sum(attribute='sunday_school_pct_val')
+    thanksgiving_total=transactions|sum(attribute='thanksgiving_pct_val')
+    crm_total=transactions|sum(attribute='crm_pct_val')
+    children_total=transactions|sum(attribute='children_pct_val')
+  %}
+
+  <!-- DESKTOP TABLE -->
+  <div class="d-none d-md-block">
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
         <tr>
           <th>Item Name</th>
-          <th>Actual Amount (100%)</th>
-          <th>%</th>
           <th>Total Value</th>
+          <th>Percentage Applied</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>General Tithe</td>
-          <td>&#8358; {{ actual_amounts.general_tithe }}</td>
-          <td>64%</td>
-          <td>&#8358; {{ summary.general_tithe }}</td>
-        </tr>
-        <tr>
-          <td>Minister Tithe</td>
-          <td>&#8358; {{ actual_amounts.minister_tithe }}</td>
-          <td>64%</td>
-          <td>&#8358; {{ summary.minister_tithe }}</td>
-        </tr>
-        <tr>
-          <td>Sunday School</td>
-          <td>&#8358; {{ actual_amounts.sunday_school }}</td>
-          <td>50%</td>
-          <td>&#8358; {{ summary.sunday_school }}</td>
-        </tr>
-        <tr>
-          <td>Thanksgiving</td>
-          <td>&#8358; {{ actual_amounts.thanksgiving }}</td>
-          <td>70%</td>
-          <td>&#8358; {{ summary.thanksgiving }}</td>
-        </tr>
-        <tr>
-          <td>CRM</td>
-          <td>&#8358; {{ actual_amounts.crm }}</td>
-          <td>50%</td>
-          <td>&#8358; {{ summary.crm }}</td>
-        </tr>
-        <tr>
-          <td>Children Offering</td>
-          <td>&#8358; {{ actual_amounts.children }}</td>
-          <td>35%</td>
-          <td>&#8358; {{ summary.children }}</td>
-        </tr>
+        <tr><td>General Tithe</td><td>&#8358; {{ general_tithe_total }}</td><td>64%</td></tr>
+        <tr><td>Minister Tithe</td><td>&#8358; {{ minister_tithe_total }}</td><td>64%</td></tr>
+        <tr><td>Sunday School</td><td>&#8358; {{ sunday_school_total }}</td><td>50%</td></tr>
+        <tr><td>Thanksgiving</td><td>&#8358; {{ thanksgiving_total }}</td><td>70%</td></tr>
+        <tr><td>CRM</td><td>&#8358; {{ crm_total }}</td><td>50%</td></tr>
+        <tr><td>Children Offering</td><td>&#8358; {{ children_total }}</td><td>35%</td></tr>
       </tbody>
-      <tfoot>
+      <tfoot class="table-secondary">
         <tr>
-          <td colspan="3"><strong>Grand Total</strong></td>
-          <td><strong>&#8358; {{ summary.grand_total }}</strong></td>
-          <br>
-
+          <th>Grand Total</th>
+          <th>&#8358; {{ grand_weighted_total }}</th>
+          <th></th>
         </tr>
       </tfoot>
     </table>
-    <h2><a href="{% url 'export_returns_summary'%}">Download Report</a></h2>
-    {% else %}
-    <p>No Transactions found.</p>
-    {% endif %}
   </div>
 
-  <!-- MOBILE -->
-  <div class="mobile-view">
-    {% if summary %}
-    <div class="mobile-card" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-      <h3>Returns Summary</h3>
-
-      <p><strong>General Tithe (100%):</strong> &#8358; {{ actual_amounts.general_tithe }} </p>
-      <p><strong>General Tithe (64%):</strong> &#8358; {{ summary.general_tithe }}</p>
-
-      <p><strong>Minister Tithe (100%):</strong> &#8358; {{ actual_amounts.minister_tithe }} </p>
-      <p><strong>Minister Tithe (64%):</strong> &#8358; {{ summary.minister_tithe }}</p>
-
-      <p><strong>Sunday School (100%):</strong> &#8358; {{ actual_amounts.sunday_school }} </p>
-      <p><strong>Sunday School (50%):</strong> &#8358; {{ summary.sunday_school }}</p>
-
-      <p><strong>Thanksgiving (100%):</strong> &#8358; {{ actual_amounts.thanksgiving }} </p>
-      <p><strong>Thanksgiving (70%):</strong> &#8358; {{ summary.thanksgiving }}</p>
-
-      <p><strong>CRM (100%):</strong> &#8358; {{ actual_amounts.crm }} </p>
-      <p><strong>CRM (50%):</strong> &#8358; {{ summary.crm }}</p>
-
-      <p><strong>Children Offering (100%):</strong> &#8358; {{ actual_amounts.children }} </p>
-      <p><strong>Children Offering (35%):</strong> &#8358; {{ summary.children }}</p>
-
-      <p><strong>Grand Total:</strong> &#8358; {{ summary.grand_total }}</p>
+  <!-- MOBILE CARDS -->
+  <div class="d-md-none">
+    <div class="card mb-2 p-2">
+      <h5 class="card-title">General Tithe</h5>
+      <p>100%: &#8358; {{ transactions|sum(attribute='general_tithe_val') }}</p>
+      <p>64%: &#8358; {{ general_tithe_total }}</p>
     </div>
-    {% else %}
-    <p>No Transactions found.</p>
-    {% endif %}
-    <h2><a href="{% url 'export_returns_summary'%}">Download Report</a></h2>
+    <div class="card mb-2 p-2">
+      <h5 class="card-title">Minister Tithe</h5>
+      <p>100%: &#8358; {{ transactions|sum(attribute='minister_tithe_val') }}</p>
+      <p>64%: &#8358; {{ minister_tithe_total }}</p>
+    </div>
+    <div class="card mb-2 p-2">
+      <h5 class="card-title">Sunday School</h5>
+      <p>100%: &#8358; {{ transactions|sum(attribute='sunday_school_val') }}</p>
+      <p>50%: &#8358; {{ sunday_school_total }}</p>
+    </div>
+    <div class="card mb-2 p-2">
+      <h5 class="card-title">Thanksgiving</h5>
+      <p>100%: &#8358; {{ transactions|sum(attribute='thanksgiving_val') }}</p>
+      <p>70%: &#8358; {{ thanksgiving_total }}</p>
+    </div>
+    <div class="card mb-2 p-2">
+      <h5 class="card-title">CRM</h5>
+      <p>100%: &#8358; {{ transactions|sum(attribute='crm_val') }}</p>
+      <p>50%: &#8358; {{ crm_total }}</p>
+    </div>
+    <div class="card mb-2 p-2">
+      <h5 class="card-title">Children Offering</h5>
+      <p>100%: &#8358; {{ transactions|sum(attribute='children_val') }}</p>
+      <p>35%: &#8358; {{ children_total }}</p>
+    </div>
+    <div class="card p-2 bg-light">
+      <h5>Grand Total</h5>
+      <p>&#8358; {{ grand_weighted_total }}</p>
+    </div>
   </div>
 
+  <div class="mt-3">
+    <a href="{% url 'export_returns_summary' %}" class="btn btn-success">Download Report</a>
+  </div>
+
+  {% else %}
+    <p>No Transactions found.</p>
+  {% endif %}
 </div>
 {% endblock %}
