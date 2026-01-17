@@ -27,42 +27,41 @@ def signin_view(request):
 
 
 def transaction(request):
-    # Start with all transactions
-    transactions = Financial.objects.all().order_by('-created_at')  # Most recent first
+    # Base queryset — ALWAYS intact
+    all_transactions = Financial.objects.all().order_by('-created_at')
 
-    # Get date filters from GET parameters
+    # Start display queryset from all data
+    transactions = all_transactions
+
+    # Get filters
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
 
-    # Debugging: Print the dates to verify if they're being passed correctly
-    print(f"From Date: {from_date}")
-    print(f"To Date: {to_date}")
-
-    # Filter by 'from_date' if provided
+    # Apply filters ONLY for display
     if from_date:
-        from_date_parsed = parse_date(from_date)
-        if from_date_parsed:
-            transactions = transactions.filter(created_at__gte=from_date_parsed)
+        parsed_from = parse_date(from_date)
+        if parsed_from:
+            transactions = transactions.filter(created_at__date__gte=parsed_from)
 
-    # Filter by 'to_date' if provided
     if to_date:
-        to_date_parsed = parse_date(to_date)
-        if to_date_parsed:
-            transactions = transactions.filter(created_at__lte=to_date_parsed)
+        parsed_to = parse_date(to_date)
+        if parsed_to:
+            transactions = transactions.filter(created_at__date__lte=parsed_to)
 
-    # Safely calculate grand total, treating None as 0
-    grand_total = sum([t.total or 0 for t in transactions])
+    # Grand total ONLY for displayed data
+    grand_total = transactions.aggregate(
+        total=Sum('total')
+    )['total'] or 0
 
-    # Context to pass to template
     context = {
-        'transactions': transactions,
+        'transactions': transactions,          # filtered (display)
+        'all_transactions': all_transactions,  # full dataset (intact)
         'grand_total': grand_total,
         'from_date': from_date,
         'to_date': to_date,
     }
 
     return render(request, 'transaction.html', context)
-
 
 
 
