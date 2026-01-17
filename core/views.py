@@ -26,10 +26,20 @@ def signin_view(request):
 
 
 
+<<<<<<< HEAD
 def transaction(request):
     # Base queryset — ALWAYS intact
     all_transactions = Financial.objects.all().order_by('-created_at')
 
+=======
+
+
+
+def transaction(request):
+    # Base queryset — ALWAYS intact
+    all_transactions = Financial.objects.all().order_by('-created_at')
+
+>>>>>>> da9738f2a57c482c51d6623a5d4d45bf3f71888c
     # Start display queryset from all data
     transactions = all_transactions
 

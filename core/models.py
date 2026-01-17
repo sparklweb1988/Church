@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
 
+from django.db import models
+from django.contrib.auth.models import User
+from decimal import Decimal
+
 class Financial(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="financials")
 
