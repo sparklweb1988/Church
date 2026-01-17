@@ -29,43 +29,37 @@ def signin_view(request):
 
 
 
+
 def transaction(request):
-    # Base queryset — ALWAYS intact
     all_transactions = Financial.objects.all().order_by('-created_at')
-
-
-    # Start display queryset from all data
     transactions = all_transactions
 
-    # Get filters
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
 
-    # Apply filters ONLY for display
     if from_date:
         parsed_from = parse_date(from_date)
         if parsed_from:
-            transactions = transactions.filter(created_at__date__gte=parsed_from)
+            transactions = transactions.filter(created_at__gte=parsed_from)
 
     if to_date:
         parsed_to = parse_date(to_date)
         if parsed_to:
-            transactions = transactions.filter(created_at__date__lte=parsed_to)
+            transactions = transactions.filter(created_at__lte=parsed_to)
 
-    # Grand total ONLY for displayed data
-    grand_total = transactions.aggregate(
-        total=Sum('total')
-    )['total'] or 0
+    # Calculate grand total using Python property
+    grand_total = sum(t.total for t in transactions)
 
     context = {
-        'transactions': transactions,          # filtered (display)
-        'all_transactions': all_transactions,  # full dataset (intact)
+        'transactions': transactions,
+        'all_transactions': all_transactions,
         'grand_total': grand_total,
         'from_date': from_date,
         'to_date': to_date,
     }
 
-    return render(request, 'transaction.html', context)
+    return render(request, "transaction.html", context)
+
 
 
 
