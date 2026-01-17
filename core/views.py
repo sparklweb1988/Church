@@ -298,41 +298,64 @@ def export_transactions_excel(request):
 
 
 
-def returns_summary(request):
-    transactions = Financial.objects.all()
 
-    # Optional: filter by date
+
+def returns_summary(request):
+    # Start with all transactions, ordered by newest first
+    transactions = Financial.objects.all().order_by('-created_at')
+
+    # --- Date filters ---
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
 
     if from_date:
-        parsed = parse_date(from_date)
-        if parsed:
-            transactions = transactions.filter(created_at__gte=parsed)
-    if to_date:
-        parsed = parse_date(to_date)
-        if parsed:
-            transactions = transactions.filter(created_at__lte=parsed)
+        parsed_from = parse_date(from_date)
+        if parsed_from:
+            transactions = transactions.filter(created_at__gte=parsed_from)
 
-    # Aggregate totals for each field
+    if to_date:
+        parsed_to = parse_date(to_date)
+        if parsed_to:
+            transactions = transactions.filter(created_at__lte=parsed_to)
+
+    # --- Initialize Decimal sums ---
+    total_general_tithe = Decimal('0')
+    total_minister_tithe = Decimal('0')
+    total_sunday_school = Decimal('0')
+    total_thanksgiving = Decimal('0')
+    total_crm = Decimal('0')
+    total_children = Decimal('0')
+    grand_total = Decimal('0')
+
+    # --- Compute sums for weighted totals ---
+    for t in transactions:
+        total_general_tithe += t.general_tithe_pct
+        total_minister_tithe += t.minister_tithe_pct
+        total_sunday_school += t.sunday_school_pct
+        total_thanksgiving += t.thanksgiving_pct
+        total_crm += t.crm_pct
+        total_children += t.children_pct
+        grand_total += t.weighted_total
+
+    # --- Prepare summary dictionary ---
     summary = {
-        'general_tithe': sum(t.general_tithe_pct for t in transactions),
-        'minister_tithe': sum(t.minister_tithe_pct for t in transactions),
-        'sunday_school': sum(t.sunday_school_pct for t in transactions),
-        'thanksgiving': sum(t.thanksgiving_pct for t in transactions),
-        'crm': sum(t.crm_pct for t in transactions),
-        'children': sum(t.children_pct for t in transactions),
-        'grand_total': sum(t.weighted_total for t in transactions),
+        'general_tithe': total_general_tithe,
+        'minister_tithe': total_minister_tithe,
+        'sunday_school': total_sunday_school,
+        'thanksgiving': total_thanksgiving,
+        'crm': total_crm,
+        'children': total_children,
+        'grand_total': grand_total,
     }
 
-    # Calculate Actual Amount (100%) for each field
+    # --- Compute actual amounts (100%) safely ---
     actual_amounts = {
-        'general_tithe': summary['general_tithe'] / 0.64 if summary['general_tithe'] else 0,
-        'minister_tithe': summary['minister_tithe'] / 0.64 if summary['minister_tithe'] else 0,
-        'sunday_school': summary['sunday_school'] / 0.50 if summary['sunday_school'] else 0,
-        'thanksgiving': summary['thanksgiving'] / 0.70 if summary['thanksgiving'] else 0,
-        'crm': summary['crm'] / 0.50 if summary['crm'] else 0,
-        'children': summary['children'] / 0.35 if summary['children'] else 0,
+        'general_tithe': (total_general_tithe / Decimal('0.64')) if total_general_tithe else Decimal('0'),
+        'minister_tithe': (total_minister_tithe / Decimal('0.64')) if total_minister_tithe else Decimal('0'),
+        'sunday_school': (total_sunday_school / Decimal('0.50')) if total_sunday_school else Decimal('0'),
+        'thanksgiving': (total_thanksgiving / Decimal('0.70')) if total_thanksgiving else Decimal('0'),
+        'crm': (total_crm / Decimal('0.50')) if total_crm else Decimal('0'),
+        'children': (total_children / Decimal('0.35')) if total_children else Decimal('0'),
     }
 
     context = {
@@ -341,71 +364,93 @@ def returns_summary(request):
         'from_date': from_date,
         'to_date': to_date,
     }
+
     return render(request, 'percentages.html', context)
 
 
 
-def export_returns_summary(request):
-    # Fetch the summary data
-    transactions = Financial.objects.all()
 
-    # Filter data by date if present
+
+
+
+def export_returns_summary(request):
+    # Fetch all transactions
+    transactions = Financial.objects.all().order_by('-created_at')
+
+    # --- Date filters ---
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
 
     if from_date:
-        parsed = parse_date(from_date)
-        if parsed:
-            transactions = transactions.filter(created_at__gte=parsed)
-    if to_date:
-        parsed = parse_date(to_date)
-        if parsed:
-            transactions = transactions.filter(created_at__lte=parsed)
+        parsed_from = parse_date(from_date)
+        if parsed_from:
+            transactions = transactions.filter(created_at__gte=parsed_from)
 
-    # Calculate the summary
-    summary = {
-        'general_tithe': sum(t.general_tithe_pct for t in transactions),
-        'minister_tithe': sum(t.minister_tithe_pct for t in transactions),
-        'sunday_school': sum(t.sunday_school_pct for t in transactions),
-        'thanksgiving': sum(t.thanksgiving_pct for t in transactions),
-        'crm': sum(t.crm_pct for t in transactions),
-        'children': sum(t.children_pct for t in transactions),
-        'grand_total': sum(t.weighted_total for t in transactions),
+    if to_date:
+        parsed_to = parse_date(to_date)
+        if parsed_to:
+            transactions = transactions.filter(created_at__lte=parsed_to)
+
+    # --- Compute totals using Decimal ---
+    total_general_tithe = Decimal('0')
+    total_minister_tithe = Decimal('0')
+    total_sunday_school = Decimal('0')
+    total_thanksgiving = Decimal('0')
+    total_crm = Decimal('0')
+    total_children = Decimal('0')
+    grand_total = Decimal('0')
+
+    for t in transactions:
+        total_general_tithe += t.general_tithe_pct
+        total_minister_tithe += t.minister_tithe_pct
+        total_sunday_school += t.sunday_school_pct
+        total_thanksgiving += t.thanksgiving_pct
+        total_crm += t.crm_pct
+        total_children += t.children_pct
+        grand_total += t.weighted_total
+
+    # --- Calculate actual amounts (100%) safely ---
+    actual_amounts = {
+        'general_tithe': (total_general_tithe / Decimal('0.64')) if total_general_tithe else Decimal('0'),
+        'minister_tithe': (total_minister_tithe / Decimal('0.64')) if total_minister_tithe else Decimal('0'),
+        'sunday_school': (total_sunday_school / Decimal('0.50')) if total_sunday_school else Decimal('0'),
+        'thanksgiving': (total_thanksgiving / Decimal('0.70')) if total_thanksgiving else Decimal('0'),
+        'crm': (total_crm / Decimal('0.50')) if total_crm else Decimal('0'),
+        'children': (total_children / Decimal('0.35')) if total_children else Decimal('0'),
     }
 
-    # Create an Excel response
+    # --- Create Excel response ---
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="returns_summary.xlsx"'
 
-    # Create a workbook and a worksheet
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = 'Returns Summary'
 
-    # Add headers to the Excel file
-    headers = ['Item Name', 'Actual Amount (100%)', 'Percentage', 'Total Value']
-    ws.append(headers)
+    # --- Headers ---
+    ws.append(['Item Name', 'Actual Amount (100%)', 'Percentage', 'Total Value'])
 
-    # Data to be written
+    # --- Data rows ---
     data = [
-        ('General Tithe', summary['general_tithe'] / 0.64, '64%', summary['general_tithe']),
-        ('Minister Tithe', summary['minister_tithe'] / 0.64, '64%', summary['minister_tithe']),
-        ('Sunday School', summary['sunday_school'] / 0.50, '50%', summary['sunday_school']),
-        ('Thanksgiving', summary['thanksgiving'] / 0.70, '70%', summary['thanksgiving']),
-        ('CRM', summary['crm'] / 0.50, '50%', summary['crm']),
-        ('Children', summary['children'] / 0.35, '35%', summary['children']),
+        ('General Tithe', actual_amounts['general_tithe'], '64%', total_general_tithe),
+        ('Minister Tithe', actual_amounts['minister_tithe'], '64%', total_minister_tithe),
+        ('Sunday School', actual_amounts['sunday_school'], '50%', total_sunday_school),
+        ('Thanksgiving', actual_amounts['thanksgiving'], '70%', total_thanksgiving),
+        ('CRM', actual_amounts['crm'], '50%', total_crm),
+        ('Children', actual_amounts['children'], '35%', total_children),
     ]
 
-    # Write the data to the Excel sheet
-    for item in data:
-        ws.append(item)
+    for row in data:
+        ws.append(row)
 
-    # Write the grand total at the end
-    ws.append(['Grand Total', '', '', summary['grand_total']])
+    # --- Grand total row ---
+    ws.append(['Grand Total', '', '', grand_total])
 
-    # Save the workbook to the response object
     wb.save(response)
     return response
+
+
+
 
 
 
